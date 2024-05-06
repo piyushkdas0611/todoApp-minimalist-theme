@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard, AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import Task from './components/Task';
 
 export default function App() {
