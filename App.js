@@ -1,54 +1,82 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard } from 'react-native';
-import Task from './components/Task'
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, KeyboardAvoidingView, TextInput, Platform, TouchableOpacity, Keyboard, AsyncStorage } from 'react-native';
+import Task from './components/Task';
 
 export default function App() {
-  const [task, setTask] = useState();
+  const [task, setTask] = useState('');
   const [taskItems, setTaskItems] = useState([]);
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  useEffect(() => {
+    saveTasks();
+  }, [taskItems]);
+
+  const loadTasks = async () => {
+    try {
+      const savedTasks = await AsyncStorage.getItem('tasks');
+      if (savedTasks !== null) {
+        setTaskItems(JSON.parse(savedTasks));
+      }
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+    }
+  };
+
+  const saveTasks = async () => {
+    try {
+      await AsyncStorage.setItem('tasks', JSON.stringify(taskItems));
+    } catch (error) {
+      console.error('Error saving tasks:', error);
+    }
+  };
 
   const handleAddTask = () => {
     Keyboard.dismiss();
-    setTaskItems([...taskItems, task])
-    setTask(null);
-  }
+    if (task.trim() !== '') {
+      setTaskItems([...taskItems, task]);
+      setTask('');
+    }
+  };
 
   const completeTask = (index) => {
     let itemsCopy = [...taskItems];
     itemsCopy.splice(index, 1);
     setTaskItems(itemsCopy);
-  }
+  };
+
   return (
     <View style={styles.container}>
-      { /*Today's task*/ }
+      {/* Today's tasks */}
       <View style={styles.textWrapper}>
         <Text style={styles.sectionTitle}>To Do</Text>
       </View>
       <View style={styles.items}>
-        {/* This is where the task will go */}
-        {
-          taskItems.map((item, index) => {
-            return(
-              <TouchableOpacity key={index} onPress={() => completeTask(index)}>
-                <Task text = {item}/>
-              </TouchableOpacity>
-            )
-          })
-        }
-        {/* <Task text = {'Task 1'}/>
-        <Task text = {'Task 2'}/>*/}
+        {/* Task list */}
+        {taskItems.map((item, index) => (
+          <TouchableOpacity key={index} onPress={() => completeTask(index)}>
+            <Task text={item} />
+          </TouchableOpacity>
+        ))}
       </View>
-      { /*Writing a task*/ }
-    <KeyboardAvoidingView behavior={Platform.OS === "ios"? "padding" : "height"}
-    style={styles.writeTaskWrapper}>
-    {/* Task Input box */}
-    <TextInput style={styles.input} placeholder={"Write a task"} placeholderTextColor='grey' value={task} onChangeText={text => setTask(text)}></TextInput>
-    {/* Add Task button */}
-    <TouchableOpacity onPress={ () => handleAddTask() }>
-      <View style={styles.addWrapper}>
-        <Text style={styles.addText}>+</Text>
-      </View>
-    </TouchableOpacity>
-    </KeyboardAvoidingView>
+      {/* Task input */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.writeTaskWrapper}>
+        <TextInput
+          style={styles.input}
+          placeholder="Write a task"
+          placeholderTextColor="grey"
+          value={task}
+          onChangeText={(text) => setTask(text)}
+        />
+        <TouchableOpacity onPress={handleAddTask}>
+          <View style={styles.addWrapper}>
+            <Text style={styles.addText}>+</Text>
+          </View>
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
+      {/* Footer */}
       <Text style={styles.footer}>Coded By Piyush Kumar Das</Text>
     </View>
   );
@@ -67,7 +95,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white'
+    color: 'white',
   },
   items: {
     marginTop: 30,
@@ -102,7 +130,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   addText: {
-    color: 'white'
+    color: 'white',
   },
   footer: {
     position: 'absolute',
